@@ -29,6 +29,10 @@ When invoking this skill, collect or identify these parameters:
 2. **Never expose or print keys:** Pass `-k "<path>"` directly; do not `cat`, print, or echo key contents.
 3. **Never weaken hash or integrity checks:** Never edit `expected-*.json`, `game_version.h`, or build scripts to bypass an error. If a hash mismatches, halt and explain that the version or dump is unsupported or corrupted.
 4. **Volume consistency:** Keep `--work` on an APFS volume (such as `/Volumes/lyr-data/` or internal storage) so large 17–26 GB game data uses instantaneous APFS copy-on-write cloning instead of duplicating storage.
+5. **Metal Toolchain Prerequisite:** Offline shader compilation (`compile-shader-libraries`) requires the offline Xcode Metal toolchain component. If missing (`[RED] no Metal compiler`), install it via:
+   ```bash
+   xcodebuild -downloadComponent MetalToolchain
+   ```
 
 ---
 
@@ -40,6 +44,10 @@ Before launching any build command, inspect the input file to identify its **Tit
 # Inspect file existence and size:
 ls -lh "<game_path>"
 ```
+
+### Title ID Role Detection:
+* Ends in **`...000`**: **Base Game** (required to build).
+* Ends in **`...800`**: **Cumulative Update** (an update alone cannot be compiled without the matching base game).
 
 Match the input against the supported game engines and builders:
 
@@ -58,6 +66,11 @@ These are fully integrated and package directly into `/Applications/<Name>.app`:
 `/Volumes/lyr-data/carlosarauz/GameBuilds/TOTK_build/totk/extracted/firmware/shared-fonts`
 
 ### Tier 2: Community Ports with Standalone App Builders
+* **Zelda: Echoes of Wisdom (`games/eow`)**:
+  * Base: `01008CF01BAAC000` (1.0.0 / v0, XCI or NSP)
+  * Update: `01008CF01BAAC800` (1.1.0 / v196608 NSP required)
+  * Keys: Required (`-k`)
+  * Builder: `python3.14 games/eow/scripts/build_eow.py --game <base> --update <update> -k <keys> --work <work> --out <out>`
 * **Octopath Traveler 0 (`games/ot0`)**:
   * Base: `01005270232F2000` (XCI)
   * Updates: Must be **1.0.3** (v196608), **1.0.4** (v262144), or **1.0.5** (v327680)
@@ -71,7 +84,7 @@ These are fully integrated and package directly into `/Applications/<Name>.app`:
   * Builder: `cd windows_games/ra2 && scripts/build.sh <install_folder>`
 
 ### Tier 4: Community Diagnostic Ports (`games/<name>`)
-For games like *Echoes of Wisdom* (`games/eow`), *Luigi's Mansion 3* (`games/lm3`), *Xenoblade 3* (`games/xc3`), *Super Mario Wonder* (`games/wonder`), etc., consult their respective `games/<name>/README.md`. They compile into terminal binaries inside their work folder rather than standalone `.app` bundles.
+For other ports like *Luigi's Mansion 3* (`games/lm3`), *Xenoblade 3* (`games/xc3`), *Super Mario Wonder* (`games/wonder`), etc., consult their respective `games/<name>/README.md`.
 
 ---
 
@@ -98,13 +111,22 @@ python3.14 -u build_app.py "<oot.nup>" \
 
 ### Example C: Octopath Traveler 0
 ```bash
-cd games/ot0
-python3.14 -u scripts/build_ot0.py \
+python3.14 -u games/ot0/scripts/build_ot0.py \
   --game "<base.xci>" \
   --update "<update.nsp>" \
   -k "<prod.keys>" \
   --work "/Volumes/lyr-data/carlosarauz/GameBuilds/OT0_build" \
-  --out "/Applications/Octopath Traveler 0.app" 2>&1 | tee ~/Library/Logs/Octopath0-build.log
+  --out "/Applications" 2>&1 | tee ~/Library/Logs/Octopath0-build.log
+```
+
+### Example D: Echoes of Wisdom
+```bash
+python3.14 -u games/eow/scripts/build_eow.py \
+  --game "<base.xci_or_nsp>" \
+  --update "<update_1.1.0.nsp>" \
+  -k "<prod.keys>" \
+  --work "/Volumes/lyr-data/carlosarauz/GameBuilds/EoW_build" \
+  --out "/Applications" 2>&1 | tee ~/Library/Logs/EchoesOfWisdom-build.log
 ```
 
 ---

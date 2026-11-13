@@ -12,5 +12,8 @@
 
 ## Build & Verification Workflows
 - Use the `build-game` skill as the universal entry point to inspect, verify, and compile any game in the repository with default paths (`/Volumes/lyr-data/carlosarauz/GameBuilds/<game_id>_build` and `/Applications/<Name>.app`).
+- **Intermediate Build Storage:** Always default intermediate extraction and work directory (`--work`) to `/Volumes/lyr-data/carlosarauz/GameBuilds/<game_id>_build` to utilize APFS copy-on-write cloning and avoid exhausting primary internal drive storage.
+- **Title ID Role Verification:** Inspect Title IDs before initiating builds. Suffix `...000` designates a Base Game; suffix `...800` designates a Cumulative Update (cannot build independently without its base).
+- **Toolchain Prerequisites:** Ensure the offline Metal compiler toolchain is installed via `xcodebuild -downloadComponent MetalToolchain` if `compile-shader-libraries` fails.
 - Use dedicated skills `install-zelda`, `install-oot`, or `install-ra2` when working directly on those specific titles.
 - Run offline unit and C UBSan tests with `make check` (uses `python3.14 -m unittest discover -s tests`).
